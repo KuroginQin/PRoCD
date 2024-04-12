@@ -19,8 +19,8 @@ Community detection (CD) is a classic graph inference task that partitions nodes
 
 Run *data_gen/DCSBM_ptn_gen.py* to generate synthetic pre-training graphs using DC-SBM.
 
-Run *ptn_demo.py* for offline pre-training after setting parameters (lines 23-37).
+Run *X0_[data_name]_ptn.py* for offline pre-training.
 
-Run *inf_demo.py* for evaluation of online inference (i.e., online generalization & online refinement) after setting parameters (lines 187-191).
+Run *X0_[data_name]_rfn_tst.py* for evaluation of online inference (i.e., online generalization & online refinement).
 
 Run *base_[refinement_method].py* for the evaluation of corresponding refinement methods (i.e., running the refinement method from scratch).

@@ -35,9 +35,13 @@ class GCN_Lyr(Module):
 
         return emb
 
-class PRoCD_MDL(Module):
+class MDL_X0(Module):
+    '''
+    Module X0 - non-linear mapping + GCN w/ skip conn + MLP w/ adaptive temp param
+    '''
+
     def __init__(self, feat_dims, num_GNN_lyr, num_MLP_lyr_tmp, drop_rate):
-        super(PRoCD_MDL, self).__init__()
+        super(MDL_X0, self).__init__()
         # ====================
         self.feat_dims = feat_dims # Layer configuration of feat red unit
         self.num_feat_lyr = len(self.feat_dims) - 1
@@ -138,6 +142,7 @@ def get_edge_ind_est(emb_tnr, lft_tmp_tnr, rgt_tmp_tnr, src_idxs, dst_idxs):
     adp_tmp = torch.sum(torch.multiply(tmp_src, tmp_dst), dim=1)
     # ==========
     #edge_ind_est = torch.tanh(torch.mul(2*edge_ind_est - 2, adp_tmp)) + 1
+    # =====
     edge_ind_est = torch.exp(torch.mul(2*edge_ind_est - 2, adp_tmp))
 
     return edge_ind_est
@@ -148,6 +153,7 @@ def get_node_pair_ind_est(emb_tnr, lft_tmp_tnr, rgt_tmp_tnr):
     adp_tmp = torch.mm(lft_tmp_tnr, rgt_tmp_tnr.t())
     # ==========
     #node_pair_ind_est = torch.tanh(torch.mul(2*node_pair_ind_est - 2, adp_tmp)) + 1
+    # =====
     node_pair_ind_est = torch.exp(torch.mul(2*node_pair_ind_est - 2, adp_tmp))
 
     return node_pair_ind_est

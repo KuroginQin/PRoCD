@@ -1,15 +1,12 @@
-# Demo code of online inference (i.e., online generalization & online inference)
-
-from modules.PRoCD import *
-
+from modules.X0 import *
 import scipy.sparse as sp
-from sdp_clustering import leiden_locale, init_random_seed
 from scipy.sparse.csgraph import connected_components
+from sdp_clustering import leiden_locale, init_random_seed
 from infomap import Infomap
 
-import time
 import pickle
 import random
+import time
 from utils import *
 
 def setup_seed(seed):
@@ -106,7 +103,6 @@ def get_init_res(ind_est, edges):
 
     return clus_res, graph, init_edges, init_node_map, init_node_idx
 
-
 def clus_reorder(num_nodes, clus_res):
     clus_res_ = []
     lbl_cnt = 0
@@ -121,7 +117,6 @@ def clus_reorder(num_nodes, clus_res):
             clus_res_.append(lbl_map[lbl])
 
     return clus_res_, lbl_cnt
-
 
 def LPA_rfn(clus_res, adj_list):
     # ====================
@@ -159,7 +154,6 @@ def LPA_rfn(clus_res, adj_list):
 
     return clus_res_
 
-
 def InfoMap_rfn(init_edges, init_node_map, init_num_nodes, clus_res, num_nodes):
     # ====================
     im = Infomap(silent=True)
@@ -175,7 +169,6 @@ def InfoMap_rfn(init_edges, init_node_map, init_num_nodes, clus_res, num_nodes):
 
     return rfn_res
 
-
 def locale_rfn(graph, init_node_map, clus_res, num_nodes, rand_seed):
     init_random_seed(rand_seed)
     rfn_res_ = leiden_locale(graph, k=8, eps=1e-6, max_outer=10, max_lv=10, max_inner=2, verbose=0)
@@ -185,20 +178,28 @@ def locale_rfn(graph, init_node_map, clus_res, num_nodes, rand_seed):
 
 # ====================
 data_name = 'dblp'
+
 feat_dims = [64, 64, 64] # Layer conf of feat red unit
 feat_dim = feat_dims[0]
-num_eph = 100 # Number of pre-training epochs - n_P
-num_add_pairs = 10000 # Number of sampled node pairs - n_S
+emb_dim = feat_dims[-1]
+num_GNN_lyr = 4 # L_GNN
+num_MLP_lyr_tmp = 2 # Number of MLP layers for temp param L_BC
+
+BCE_param = 0.1 # alpha
+mod_rsl = 10 # lambda
+num_add_pairs = 10000 # n_S
+drop_rate = 0.2
+
+eph_idx = 100 # n_P
 
 # ====================
-# Read real graph
 pkl_file = open('data/%s_edges.pickle' % (data_name), 'rb')
 tst_edges = pickle.load(pkl_file)
 pkl_file.close()
 
 # ====================
 if np.min(np.min(tst_edges)) == 1:
-    tst_edges = [(src - 1, dst - 1) for (src, dst) in tst_edges]
+    tst_edges = [(src-1, dst-1) for (src, dst) in tst_edges]
 tst_num_nodes = np.max(np.max(tst_edges)) + 1
 tst_num_edges = len(tst_edges)
 # ==========
@@ -217,6 +218,7 @@ for (src, dst) in tst_edges:
     tst_src_idxs.append(src)
     tst_dst_idxs.append(dst)
 # ==========
+# Sample set of node pairs for inference
 src_rand_idxs = [i for i in range(tst_num_nodes)]
 dst_rand_idxs = [i for i in reversed(src_rand_idxs)]
 random.shuffle(src_rand_idxs)
@@ -228,12 +230,7 @@ for t in range(num_add_pairs):
     tst_edges_inf.append((src, dst))
     tst_src_idxs.append(src)
     tst_dst_idxs.append(dst)
-
-# ====================
-mdl = torch.load('chpt/PRoCD_%s_%d.pkl' % (data_name, num_eph)).to(device)
-mdl.eval()
-
-# ====================
+# ==========
 # Get GNN support
 idxs, vals = get_sp_GCN_sup(tst_edges, tst_num_nodes)
 idxs_tnr = torch.LongTensor(idxs).to(device)
@@ -242,7 +239,13 @@ sup_tnr = torch.sparse.FloatTensor(idxs_tnr.t(), vals_tnr,
                                    torch.Size([tst_num_nodes, tst_num_nodes])).to(device)
 
 # ====================
- # Extract input feature - Gaussian random projection
+# Define the model
+mdl = MDL_X0(feat_dims, num_GNN_lyr, num_MLP_lyr_tmp, drop_rate).to(device)
+mdl.load_state_dict(torch.load('chpt/DBLP_mdl_%.1f_%.1f_%d.pt' % (BCE_param, mod_rsl, eph_idx)))
+mdl.eval()
+
+# ====================
+# Extract input feature - Gaussian random projection
 time_start = time.time()
 # ==========
 idxs, vals = get_sp_mod_feat(tst_edges, tst_degs)
@@ -258,7 +261,6 @@ time_end = time.time()
 feat_time = time_end - time_start
 
 # ====================
-# FFP
 time_start = time.time()
 emb_tnr, lft_tmp_tnr, rgt_tmp_tnr = mdl(red_feat_tnr, sup_tnr)
 edge_ind_est = get_edge_ind_est(emb_tnr, lft_tmp_tnr, rgt_tmp_tnr, tst_src_idxs, tst_dst_idxs)
@@ -272,14 +274,11 @@ else:
 #print('edge_ind_est', edge_ind_est)
 
 # ====================
-# Initialized result
+# Extract initialized result
 time_start = time.time()
 clus_res_init, init_graph, init_edges, init_node_map, init_num_nodes = get_init_res(edge_ind_est, tst_edges_inf)
 time_end = time.time()
 ext_time = time_end - time_start
-
-# ====================
-# Online refinement w/ different meth
 # ==========
 # Refined by LPA
 time_start = time.time()
