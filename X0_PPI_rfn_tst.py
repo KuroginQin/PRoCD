@@ -18,7 +18,7 @@ def setup_seed(seed):
 rand_seed_gbl = 0
 setup_seed(rand_seed_gbl)
 
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_init_res(ind_est, edges):
@@ -177,7 +177,7 @@ def locale_rfn(graph, init_node_map, clus_res, num_nodes, rand_seed):
     return rfn_res
 
 # ====================
-data_name = 'PPI'
+data_name = 'protein'
 
 feat_dims = [64, 64, 64] # Layer conf of feat red unit
 feat_dim = feat_dims[0]

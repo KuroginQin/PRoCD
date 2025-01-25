@@ -18,7 +18,7 @@ def setup_seed(seed):
 rand_seed_gbl = 0
 setup_seed(rand_seed_gbl)
 
-torch.cuda.set_device(1)
+torch.cuda.set_device(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def get_init_res(ind_est, edges):

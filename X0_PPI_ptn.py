@@ -178,7 +178,7 @@ def locale_rfn(graph, init_node_map, clus_res, num_nodes, rand_seed):
     return rfn_res
 
 # ====================
-data_name = 'PPI'
+data_name = 'protein'
 feat_dims = [64, 64, 64] # Layer conf of feat red unit
 feat_dim = feat_dims[0]
 emb_dim = feat_dims[-1]
@@ -197,11 +197,11 @@ save_flag = True
 eva_flag = False
 
 # ====================
-pkl_file = open('data/SBMX_trn_edges_list.pickle', 'rb')
+pkl_file = open('data/ptn_edges_list.pickle', 'rb') # SBMX_trn_edges_list.pickle
 trn_edges_list = pickle.load(pkl_file)
 pkl_file.close()
 # ==========
-pkl_file = open('data/SBMX_trn_gnd_list.pickle', 'rb')
+pkl_file = open('data/ptn_gnd_list.pickle', 'rb') # SBMX_trn_gnd_list.pickle
 trn_gnd_list = pickle.load(pkl_file)
 pkl_file.close()
 # ==========

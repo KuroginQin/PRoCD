@@ -197,11 +197,11 @@ save_flag = True
 eva_flag = False
 
 # ====================
-pkl_file = open('data/SBMX_trn_edges_list.pickle', 'rb')
+pkl_file = open('data/ptn_edges_list.pickle', 'rb') # SBMX_trn_edges_list.pickle
 trn_edges_list = pickle.load(pkl_file)
 pkl_file.close()
 # ==========
-pkl_file = open('data/SBMX_trn_gnd_list.pickle', 'rb')
+pkl_file = open('data/ptn_gnd_list.pickle', 'rb') # SBMX_trn_gnd_list.pickle
 trn_gnd_list = pickle.load(pkl_file)
 pkl_file.close()
 # ==========
