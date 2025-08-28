@@ -20,11 +20,13 @@ If you find this project useful for your research, please cite the following pap
 }
 ```
 ```
-@article{qin2024towards,
+@inproceedings{qin2024towards,
   title={Towards Faster Graph Partitioning via Pre-training and Inductive Inference},
   author={Qin, Meng and Zhang, Chaorui and Gao, Yu and Ding, Yibin and Jiang, Weipeng and Zhang, Weixi and Han, Wei and Bai, Bo},
-  journal={arXiv preprint arXiv:2409.00670},
-  year={2024}
+  booktitle={Proceedings of the 2024 IEEE High Performance Extreme Computing Conference (HPEC)},
+  pages={1--7},
+  year={2024},
+  organization={IEEE}
 }
 ```
 
